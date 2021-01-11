@@ -69,17 +69,16 @@ class DataSet:
         agg = None
         for data_point in sorted_data:
             if agg:
-                print(key(data_point[attr_idx]), key(agg[1][-1][attr_idx]), key(data_point[attr_idx]) == key(agg[1][-1][attr_idx]))
                 if key(data_point[attr_idx]) == key(agg[1][-1][attr_idx]):
                     agg[1].append(data_point)
                     continue
                 else:
-                    aggregation[agg[0]] = agg[1]
+                    aggregation[key(agg[0])] = agg[1]
 
             agg = (data_point[attr_idx], [data_point])
 
         if agg:
-            aggregation[agg[0]] = agg[1]
+            aggregation[key(agg[0])] = agg[1]
 
         return aggregation
 

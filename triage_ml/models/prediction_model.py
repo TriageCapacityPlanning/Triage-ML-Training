@@ -1,15 +1,13 @@
+from ..data.dataset import DataSet, MLDataSet
+from tensorflow.keras.models import Model
+
+
 class PredictionModel:
 
-    def create_dataset(self, data):
+    def create_ml_dataset(self, dataset: DataSet) -> MLDataSet:
         raise NotImplementedError()
 
-    def save_dataset(self, dataset):
-        raise NotImplementedError()
-
-    def load_dataset(self, dataset_file):
-        raise NotImplementedError()
-
-    def get_model(self):
+    def get_model(self) -> Model:
         raise NotImplementedError()
 
     def preprocess_input(self, model_input):

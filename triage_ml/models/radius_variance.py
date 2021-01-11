@@ -1,12 +1,32 @@
 from .prediction_model import PredictionModel
+from ..data.dataset import DataSet, MLDataSet
+
 from tensorflow.keras import Model
 from tensorflow.keras.layers import Input, LSTM, Dropout, Concatenate, Dense
+from datetime import datetime, timedelta
+import numpy as np
 
 
 class RadiusVariance(PredictionModel):
+    """
+    Predicts the number of patients arrivals and the variance of arrivals in a radius.
 
-    def __init__(self, seq_size=30):
+    Takes in the previous seq_size days predicts:
+     - The number of arrivals on the next day
+     - The variance of arrivals
+
+     The variance of arrivals is trained by taking the variance of arrivals within a radius_days
+     radius of the prediction day.
+    """
+
+    def __init__(self, seq_size=30, radius_days=15):
+        """
+        Construct a new RadiusVariance.
+        :param seq_size: How many previous days does the model require to predict.
+        :param radius_days: The radius in days used to compute arrival variance.
+        """
         self.seq_size = seq_size
+        self.radius_days = radius_days
         self.model = None
 
     def _init_model(self):
@@ -25,16 +45,52 @@ class RadiusVariance(PredictionModel):
 
         self.model = Model(name='radius_variance', inputs=[seq_input, date_input], outputs=output)
 
-    def create_dataset(self, data):
-        pass
+    def create_ml_dataset(self, dataset: DataSet) -> MLDataSet:
+        """
+        Build a MLDataSet compatible with RadiusVariance using the provided DataSet.
+        :param dataset: The DataSet to construct the MLDataSet from.
+        :return: The MLDataSet
+        """
+        dataset.order_by('date_received')
+        first = dataset[0]
+        last = dataset[-1]
+        min_date = first.date_received + timedelta(days=self.radius_days)
+        max_date = last.date_received - timedelta(days=self.radius_days)
 
-    def save_dataset(self, dataset):
-        pass
+        date_aggregation = dataset.aggregate_on('date_received', lambda dr: str(dr.date()))
 
-    def load_dataset(self, dataset_file):
-        pass
+        date_range = list(self._date_range(min_date, max_date))
+        x = [np.zeros((len(date_range), 1)), np.zeros((len(date_range), 12 + 31))]
+        y = [np.zeros((len(date_range), 2))]
+
+        for i, date in enumerate(date_range):
+            date_str = str(date.date())
+            val = len(date_aggregation[date_str]) if date_str in date_aggregation else 0
+
+            radius_vals = []
+            for j in range(-self.radius_days, self.radius_days + 1):
+                j_date_str = str((date + timedelta(days=j)).date())
+                radius_vals.append(len(date_aggregation[j_date_str]) if j_date_str in date_aggregation else 0)
+            variance = np.var(radius_vals)
+
+            one_hot_date = np.zeros(12 + 31)
+            one_hot_date[date.date().month] = 1
+            one_hot_date[11 + date.date().day] = 1
+
+            x[0][i] = val
+            x[1][i] = one_hot_date
+            y[0][i] = [val, variance]
+
+        return MLDataSet(x, y)
+
+    def _date_range(self, min_date: datetime, max_date: datetime):
+        for n in range(int((max_date - min_date).days) + 1):
+            yield min_date + timedelta(n)
 
     def get_model(self):
+        """
+        :return: The Keras model.
+        """
         if self.model is None:
             self._init_model()
             return self.model

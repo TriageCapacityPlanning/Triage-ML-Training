@@ -49,7 +49,7 @@ def test_aggregate_on():
     dataset = DataSet(data)
     dataset_data = dataset.data
 
-    agg = dataset.aggregate_on('clinic_id', key=id)
+    agg = dataset.aggregate_on('clinic_id', key=lambda x: x)
 
     assert agg == {1: dataset_data}
 
@@ -59,12 +59,9 @@ def test_aggregate_on_dates(test_data):
 
     agg = dataset.aggregate_on('date_received', key=lambda d: str(d.date()))
 
-    def d(date_str):
-        datetime.strptime(date_str, '%Y-%m-%d')
-
-    assert len(agg[d('2020-01-01')]) == 1
-    assert len(agg[d('2020-01-03')]) == 2
-    assert len(agg[d('2020-01-04')]) == 1
-    assert len(agg[d('2020-01-05')]) == 1
-    assert len(agg[d('2020-01-07')]) == 4
-    assert len(agg[d('2020-01-11')]) == 2
+    assert len(agg['2020-01-01']) == 1
+    assert len(agg['2020-01-03']) == 2
+    assert len(agg['2020-01-04']) == 1
+    assert len(agg['2020-01-05']) == 1
+    assert len(agg['2020-01-07']) == 4
+    assert len(agg['2020-01-11']) == 2
