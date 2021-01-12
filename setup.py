@@ -6,5 +6,7 @@ setup(name='triage_ml',
       url='https://github.com/TriageCapacityPlanning/Triage-ML-Training',
       packages=['triage_ml'],
       install_requires=['pytest', 'tensorflow-gpu', 'psycopg2', 'numpy'],
-      scripts=['bin/train.py'],
+      entry_points={
+          'console_scripts': ['triage-train=triage_ml.train:main']
+      },
       zip_safe=False)

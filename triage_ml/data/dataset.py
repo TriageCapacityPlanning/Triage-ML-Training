@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections import namedtuple, defaultdict
+from collections import namedtuple
 from typing import Any, Dict, List, Tuple, Text, Callable
 import numpy as np
 
@@ -95,4 +95,15 @@ class MLDataSet:
         self.inputs = inputs
         self.outputs = outputs
 
-
+    def split(self, point=0.5) -> Tuple[MLDataSet, MLDataSet]:
+        """
+        Split the MLDataSet into two MLDataSets at a given point
+        :param point: The point to split the MLDataSet (0,1)
+        :return: A Tuple (MLDataSet, MLDataSet)
+        """
+        split_idx = len(self.inputs[0]) * point
+        s1 = MLDataSet([x[:split_idx] for x in self.inputs],
+                       [y[:split_idx] for y in self.outputs])
+        s2 = MLDataSet([x[split_idx:] for x in self.inputs],
+                       [y[split_idx:] for y in self.outputs])
+        return s1, s2
