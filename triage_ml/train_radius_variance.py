@@ -1,5 +1,5 @@
-from .models.radius_variance import RadiusVariance
-from .data.dataset import DataSet
+from triage_ml.models.radius_variance import RadiusVariance
+from triage_ml.data.dataset import DataSet
 
 from tensorflow.keras.optimizers import Adam
 

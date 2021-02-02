@@ -1,5 +1,5 @@
-from .prediction_model import PredictionModel
-from ..data.dataset import DataSet, MLDataSet
+from triage_ml.models.prediction_model import PredictionModel
+from triage_ml.data.dataset import DataSet, MLDataSet
 
 from tensorflow.keras import Model
 from tensorflow.keras.layers import Input, LSTM, Dropout, Concatenate, Dense

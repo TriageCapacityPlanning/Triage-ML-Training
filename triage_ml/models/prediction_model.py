@@ -1,4 +1,4 @@
-from ..data.dataset import DataSet, MLDataSet
+from triage_ml.data.dataset import DataSet, MLDataSet
 from tensorflow.keras.models import Model
 
 
