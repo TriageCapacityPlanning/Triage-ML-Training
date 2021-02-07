@@ -30,6 +30,7 @@ def test_get_model():
 
 
 def test_train_model(test_dataset):
+    """SRS: MOD-2"""
     model = RadiusVariance(seq_size=2, radius_days=1)
     ml_dataset = model.create_ml_dataset(test_dataset)
     weights = model.get_model().get_weights()
@@ -46,6 +47,7 @@ def test_train_model(test_dataset):
 
 
 def test_prediction(test_dataset):
+    """SRS: MOD-7"""
     model = RadiusVariance(seq_size=2, radius_days=1)
     ml_dataset = model.create_ml_dataset(test_dataset)
     model.get_model().compile(
