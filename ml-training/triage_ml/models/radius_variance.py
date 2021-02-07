@@ -83,7 +83,7 @@ class RadiusVariance(PredictionModel):
 
             x[0][i] = val
             x[1][i] = one_hot_date
-            y[0][i] = [val, variance]
+            y[0][1] = [val, variance]
 
         return MLDataSet(x[0:1], x[1:], y, self.seq_size)
 

@@ -31,3 +31,18 @@ pip3 install ml-training
 ```bash
 triage-train
 ```
+
+## Testing
+
+### Run unit and acceptance tests
+```bash
+docker run -it triage-ml-training
+pytest
+```
+
+### Run stress test
+Benchmarks your machines ability to perform training.
+```bash
+docker run -it --gpus '"device={num}"' triage-ml-training
+python tests/stress_test.py
+```
