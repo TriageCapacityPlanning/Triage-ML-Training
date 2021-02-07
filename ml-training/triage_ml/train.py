@@ -26,3 +26,5 @@ def main():
     dataset = _load_dataset_from_file('tests/test_data.txt')
 
     train_radius_variance(dataset, epochs=50)
+
+    # TODO(samcymbaluk): Write results to DB

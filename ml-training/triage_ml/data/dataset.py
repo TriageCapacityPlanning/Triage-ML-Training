@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from collections import namedtuple
 from typing import Any, Dict, List, Tuple, Text, Callable
 import numpy as np
@@ -25,12 +23,12 @@ class DataSet:
         :param data: The list of data tuples.
         """
         # Tuple must fit structure of DataPoint
-        if not len(data) or len(data[0]) != len(_ATTRS):
+        if len(data) and len(data[0]) != len(_ATTRS):
             raise ValueError('Invalid data argument.')
 
         self.data = [DataPoint(*item) for item in data]
 
-    def filter_on(self, attribute: Text, predicate: Callable[[Any], bool]) -> DataSet:
+    def filter_on(self, attribute: Text, predicate: Callable[[Any], bool]):
         """
         Filter the DataSet on a certain attribute with the given predicate.
 
@@ -44,7 +42,7 @@ class DataSet:
         self.data = filter(lambda data_point: predicate(data_point[attr_idx]), self.data)
         return self
 
-    def order_by(self, attribute: Text, descending=False) -> DataSet:
+    def order_by(self, attribute: Text, descending=False):
         """
         Orders the list of DataPoints by a given attribute.
         :param attribute: The attribute to order by.
@@ -91,19 +89,27 @@ class DataSet:
 
 class MLDataSet:
 
-    def __init__(self, inputs: List[np.array], outputs: List[np.array]):
-        self.inputs = inputs
-        self.outputs = outputs
+    def __init__(self, seq_inputs: List[np.array], other_inputs: List[np.array], outputs: List[np.array], seq_size):
+        self.seq_size = seq_size
+        self.inputs = [self._setup_seq(x) for x in seq_inputs] + [x[seq_size:] for x in other_inputs]
+        self.outputs = [y[seq_size:] for y in outputs]
 
-    def split(self, point=0.5) -> Tuple[MLDataSet, MLDataSet]:
+    def _setup_seq(self, data):
+        seq_data = []
+        for i in range(self.seq_size, len(data)):
+            seq_data.append(data[i-self.seq_size:i])
+        seq_data = np.stack(seq_data) if seq_data else np.array(seq_data)
+        return seq_data
+
+    def split(self, point=0.5):
         """
         Split the MLDataSet into two MLDataSets at a given point
         :param point: The point to split the MLDataSet (0,1)
         :return: A Tuple (MLDataSet, MLDataSet)
         """
         split_idx = len(self.inputs[0]) * point
-        s1 = MLDataSet([x[:split_idx] for x in self.inputs],
-                       [y[:split_idx] for y in self.outputs])
-        s2 = MLDataSet([x[split_idx:] for x in self.inputs],
-                       [y[split_idx:] for y in self.outputs])
+        s1 = MLDataSet([], [x[:split_idx] for x in self.inputs],
+                       [y[:split_idx] for y in self.outputs], self.seq_size)
+        s2 = MLDataSet([], [x[split_idx:] for x in self.inputs],
+                       [y[split_idx:] for y in self.outputs], self.seq_size)
         return s1, s2

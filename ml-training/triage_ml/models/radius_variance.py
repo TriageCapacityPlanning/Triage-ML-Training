@@ -51,15 +51,19 @@ class RadiusVariance(PredictionModel):
         :param dataset: The DataSet to construct the MLDataSet from.
         :return: The MLDataSet
         """
-        dataset.order_by('date_received')
-        first = dataset[0]
-        last = dataset[-1]
-        min_date = first.date_received + timedelta(days=self.radius_days)
-        max_date = last.date_received - timedelta(days=self.radius_days)
+        if len(dataset):
+            dataset.order_by('date_received')
+            first = dataset[0]
+            last = dataset[-1]
+            min_date = first.date_received + timedelta(days=self.radius_days)
+            max_date = last.date_received - timedelta(days=self.radius_days)
 
-        date_aggregation = dataset.aggregate_on('date_received', lambda dr: str(dr.date()))
+            date_aggregation = dataset.aggregate_on('date_received', lambda dr: str(dr.date()))
 
-        date_range = list(self._date_range(min_date, max_date))
+            date_range = list(self._date_range(min_date, max_date))
+        else:
+            date_range = []
+
         x = [np.zeros((len(date_range), 1)), np.zeros((len(date_range), 12 + 31))]
         y = [np.zeros((len(date_range), 2))]
 
@@ -81,7 +85,7 @@ class RadiusVariance(PredictionModel):
             x[1][i] = one_hot_date
             y[0][i] = [val, variance]
 
-        return MLDataSet(x, y)
+        return MLDataSet(x[0:1], x[1:], y, self.seq_size)
 
     def _date_range(self, min_date: datetime, max_date: datetime):
         for n in range(int((max_date - min_date).days) + 1):
