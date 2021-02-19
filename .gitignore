@@ -15,3 +15,5 @@ venv
 # Project specific
 *.h5
 *.csv
+*.png
+*.txt

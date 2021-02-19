@@ -28,8 +28,23 @@ pip3 install ml-training
 ```
 
 ## Usage
+### Training
 ```bash
-triage-train
+triage-train --help
+```
+Train using local data found in `generated_data.txt`:
+```bash
+triage-train -m radius_variance -c 1 -s 0 -e 100 -lr 0.001
+```
+
+### Data Generation
+```bash
+triage-datagen --help
+```
+
+Example generating data using `cyclic` method:
+```bash
+triage-datagen -m cyclic -sd 2015-01-01 -ed 2020-12-31 -v generated_data.png
 ```
 
 ## Testing

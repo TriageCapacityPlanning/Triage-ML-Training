@@ -2,7 +2,7 @@ from collections import namedtuple
 from typing import Any, Dict, List, Tuple, Text, Callable
 import numpy as np
 
-_ATTRS = ['id', 'clinic_id', 'severity', 'date_received', 'date_seen']
+_ATTRS = ['clinic_id', 'severity', 'date_received']
 
 DataPoint = namedtuple('DataPoint', _ATTRS)
 
@@ -39,7 +39,7 @@ class DataSet:
         :return: The modified DataSet
         """
         attr_idx = _ATTRS.index(attribute)
-        self.data = filter(lambda data_point: predicate(data_point[attr_idx]), self.data)
+        self.data = list(filter(lambda data_point: predicate(data_point[attr_idx]), self.data))
         return self
 
     def order_by(self, attribute: Text, descending=False):
@@ -88,11 +88,9 @@ class DataSet:
         lines = []
         for datum in self.data:
             serialized_datum = (
-                str(datum.id),
                 str(datum.clinic_id),
                 str(datum.severity),
                 datum.date_received.strftime('%Y-%m-%d'),
-                datum.date_seen.strftime('%Y-%m-%d'),
             )
             lines.append(','.join(serialized_datum))
 

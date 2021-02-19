@@ -26,7 +26,7 @@ def cyclic(start_date: datetime, end_date: datetime, random_multiple=0) -> DataS
     for d, date in enumerate(date_range(start_date, end_date)):
         arrivals = fn(d)
         for arrival in range(arrivals):
-            data.append((i, 1, get_random_severity(), date, date))
+            data.append((1, get_random_severity(), date))
             i += 1
 
     return DataSet(data)

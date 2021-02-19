@@ -26,9 +26,7 @@ def _load_dataset_from_file(file_name: Text) -> DataSet:
             data.append((
                 int(line[0]),
                 int(line[1]),
-                int(line[2]),
-                datetime.strptime(line[3], '%Y-%m-%d'),
-                datetime.strptime(line[4], '%Y-%m-%d')
+                datetime.strptime(line[2], '%Y-%m-%d'),
             ))
 
     return DataSet(data)
@@ -75,6 +73,8 @@ def main():
     else:
         pass  # dataset = triage_api.get_dataset
 
+    dataset.filter_on('clinic_id', lambda c_id: c_id == args.clinic_id)
+    dataset.filter_on('severity', lambda s: s == args.severity)
     trained_model, train_data, test_data = train_radius_variance(dataset, epochs=args.epochs, lr=args.learning_rate)
 
     # TODO(samcymbaluk): Write results to DB
