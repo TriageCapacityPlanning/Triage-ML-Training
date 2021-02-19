@@ -1,6 +1,7 @@
 from triage_ml.models.prediction_model import PredictionModel
 from triage_ml.data.dataset import DataSet, MLDataSet
 
+from typing import List
 from tensorflow.keras import Model
 from tensorflow.keras.layers import Input, LSTM, Dropout, Concatenate, Dense
 from datetime import datetime, timedelta
@@ -83,9 +84,27 @@ class RadiusVariance(PredictionModel):
 
             x[0][i] = val
             x[1][i] = one_hot_date
-            y[0][1] = [val, variance]
+            y[0][i] = [val, variance]
 
         return MLDataSet(x[0:1], x[1:], y, self.seq_size)
+
+    def predict(self, seed_data: List[np.ndarray], date_encodings) -> List[np.ndarray]:
+        """
+        Predict one of more times.
+        :param seed_data: The data to seed the model with.
+        :param date_encodings: The encodings of the dates to predict on
+        :return: A list of predictions.
+        """
+        predictions = []
+        for date in date_encodings:
+            seed_data[1] = date[np.newaxis, :]
+
+            pred = self.model(seed_data)
+
+            predictions.append(pred)
+            seed_data[0][0] = seed_data[0][0][:1] + [[pred[0][0]]]
+
+        return predictions
 
     def _date_range(self, min_date: datetime, max_date: datetime):
         for n in range(int((max_date - min_date).days) + 1):

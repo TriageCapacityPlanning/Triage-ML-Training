@@ -10,6 +10,9 @@ class PredictionModel:
     def get_model(self) -> Model:
         raise NotImplementedError()
 
+    def predict(self, seed_data, length):
+        raise NotImplementedError()
+
     def preprocess_input(self, model_input):
         return model_input
 
