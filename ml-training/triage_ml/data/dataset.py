@@ -80,6 +80,25 @@ class DataSet:
 
         return aggregation
 
+    def write_to_file(self, file_name: str):
+        """
+        Writes the DataSet to the provided file.
+        :param file_name: The file to write to.
+        """
+        lines = []
+        for datum in self.data:
+            serialized_datum = (
+                str(datum.id),
+                str(datum.clinic_id),
+                str(datum.severity),
+                datum.date_received.strftime('%Y-%m-%d'),
+                datum.date_seen.strftime('%Y-%m-%d'),
+            )
+            lines.append(','.join(serialized_datum))
+
+        with open(file_name, 'w') as file:
+            file.write('\n'.join(lines))
+
     def __len__(self):
         return len(self.data)
 
@@ -107,7 +126,7 @@ class MLDataSet:
         :param point: The point to split the MLDataSet (0,1)
         :return: A Tuple (MLDataSet, MLDataSet)
         """
-        split_idx = len(self.inputs[0]) * point
+        split_idx = int(len(self.inputs[0]) * point)
         s1 = MLDataSet([], [x[:split_idx] for x in self.inputs],
                        [y[:split_idx] for y in self.outputs], self.seq_size)
         s2 = MLDataSet([], [x[split_idx:] for x in self.inputs],
