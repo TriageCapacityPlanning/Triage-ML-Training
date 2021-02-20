@@ -16,9 +16,7 @@ def test_dataset():
             data.append((
                 int(line[0]),
                 int(line[1]),
-                int(line[2]),
-                datetime.strptime(line[3], '%Y-%m-%d'),
-                datetime.strptime(line[4], '%Y-%m-%d')
+                datetime.strptime(line[2], '%Y-%m-%d'),
             ))
 
     return DataSet(data)

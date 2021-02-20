@@ -7,11 +7,14 @@ from typing import Text
 from datetime import datetime
 import os
 import argparse
+import requests
 
 
 TRIAGE_API_URL = os.getenv('TRIAGE_API_URL')
 TRIAGE_API_USER = os.getenv('TRIAGE_API_USER')
 TRIAGE_API_PASS = os.getenv('TRIAGE_API_PASS')
+
+DATE_FORMAT = '%Y-%m-%d'
 
 MODELS = {
     'radius_variance': train_radius_variance
@@ -48,11 +51,13 @@ def parse_args():
     parser.add_argument('-e', '--epochs', default=100, type=int,
                         help='Number of passes through the dataset to train for.')
     parser.add_argument('-lr', '--learning_rate', default=0.001, type=float,
-                        help='The gradient descent learning rate.')
+                        help='The gradient descent learning rate.'),
+    parser.add_argument('-p', '--persist', default=False, type=bool,
+                        help='Whether training weights should be persisted to database.')
 
     # If pulling data from API
-    parser.add_argument('-sd', '--start_date', help='The start date of the data.')
-    parser.add_argument('-ed', '--end_date', help='The end date of the data.')
+    parser.add_argument('-sd', '--start_date', help=f'The start date of the data. Format: {DATE_FORMAT}')
+    parser.add_argument('-ed', '--end_date', help=f'The end date of the data. Format: {DATE_FORMAT}')
 
     # If using local data
     parser.add_argument('-d', '--dataset',
@@ -61,22 +66,27 @@ def parse_args():
     return parser.parse_args()
 
 
-def main():
+def main(http=requests):
     """
     Entrypoint for triage-train.
     """
     args = parse_args()
-    triage_api = TriageAPI(TRIAGE_API_URL, TRIAGE_API_USER, TRIAGE_API_PASS)
+    triage_api = TriageAPI(TRIAGE_API_URL, TRIAGE_API_USER, TRIAGE_API_PASS, http)
 
     if args.dataset:
         dataset = _load_dataset_from_file(args.dataset)
     else:
-        pass  # dataset = triage_api.get_dataset
+        start_date = datetime.strptime(args.start_date, DATE_FORMAT)
+        end_date = datetime.strptime(args.end_date, DATE_FORMAT)
+        dataset = triage_api.get_data(args.clinic_id, args.severity, start_date, end_date)
 
     dataset.filter_on('clinic_id', lambda c_id: c_id == args.clinic_id)
     dataset.filter_on('severity', lambda s: s == args.severity)
-    trained_model, train_data, test_data = train_radius_variance(dataset, epochs=args.epochs, lr=args.learning_rate)
+    trained_model, train_data, test_data, history = train_radius_variance(dataset,
+                                                                          epochs=args.epochs, lr=args.learning_rate)
 
-    # TODO(samcymbaluk): Write results to DB
+    trained_model.get_model().save('weights.h5')
+    if args.persist:
+        triage_api.post_weights(args.clinic_id, 'weights.h5', history.history['val_loss'][-1])
 
     visualize_training_results(trained_model, train_data, test_data, 'results.png')

@@ -15,11 +15,11 @@ def train(dataset: DataSet, epochs: int, lr=0.001, valid_split=0.1, output_file=
         optimizer=Adam(lr=lr),
         loss='mse'
     )
-    rv_model.get_model().fit(
+    history = rv_model.get_model().fit(
         x=train_data.inputs,
         y=train_data.outputs,
         validation_data=(test_data.inputs, test_data.outputs),
         epochs=epochs)
 
     rv_model.get_model().save(output_file)
-    return rv_model, train_data, test_data
+    return rv_model, train_data, test_data, history

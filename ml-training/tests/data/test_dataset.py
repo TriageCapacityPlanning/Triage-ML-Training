@@ -12,23 +12,21 @@ def test_data():
             data.append((
                 int(line[0]),
                 int(line[1]),
-                int(line[2]),
-                datetime.strptime(line[3], '%Y-%m-%d'),
-                datetime.strptime(line[4], '%Y-%m-%d')
+                datetime.strptime(line[2], '%Y-%m-%d'),
             ))
 
     return data
 
 
 def test_dataset_len():
-    data = 5*[('a', 'b', 'c', 'd', 'e')]
+    data = 5*[('a', 'b', 'c')]
     dataset = DataSet(data)
 
     assert len(dataset) == 5
 
 
 def test_dataset_index():
-    data = [('a', 'b', 'c', 'd', 'e'), (1, 2, 3, 4, 5)]
+    data = [('a', 'b', 'c'), (1, 2, 3)]
     dataset = DataSet(data)
 
     assert dataset[0][0] == 'a'
@@ -36,16 +34,16 @@ def test_dataset_index():
 
 
 def test_order_by():
-    data = [(i, 1, 2, 3, 4) for i in range(5)]
+    data = [(i, 1, 2) for i in range(5)]
     dataset = DataSet(data)
 
-    dataset.order_by('id', descending=True)
+    dataset.order_by('clinic_id', descending=True)
     for i in range(5):
         assert dataset[i][0] == 4 - i
 
 
 def test_aggregate_on():
-    data = [(i, 1, 2, 3, 4) for i in range(5)]
+    data = [(1, 2, i) for i in range(5)]
     dataset = DataSet(data)
     dataset_data = dataset.data
 
