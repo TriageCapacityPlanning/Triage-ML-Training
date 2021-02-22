@@ -2,6 +2,7 @@ from triage_ml.models.radius_variance import RadiusVariance
 from triage_ml.data.dataset import DataSet
 
 from tensorflow.keras.optimizers import Adam
+from collections import namedtuple
 
 
 def train(dataset: DataSet, epochs: int, lr=0.001, valid_split=0.1, output_file='weights.h5'):
@@ -15,6 +16,7 @@ def train(dataset: DataSet, epochs: int, lr=0.001, valid_split=0.1, output_file=
         optimizer=Adam(lr=lr),
         loss='mse'
     )
+
     history = rv_model.get_model().fit(
         x=train_data.inputs,
         y=train_data.outputs,

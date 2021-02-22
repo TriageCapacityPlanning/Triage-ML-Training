@@ -87,6 +87,6 @@ def main(http=requests):
 
     trained_model.get_model().save('weights.h5')
     if args.persist:
-        triage_api.post_weights(args.clinic_id, 'weights.h5', history.history['val_loss'][-1])
+        triage_api.post_weights(args.clinic_id, args.severity, 'weights.h5', history.history['val_loss'][-1])
 
     visualize_training_results(trained_model, train_data, test_data, 'results.png')
