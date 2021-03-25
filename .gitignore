@@ -11,9 +11,17 @@
 .idea
 .DS_Store
 venv
+.pytest_cache
 
 # Project specific
-*.h5
-*.csv
-*.png
-*.txt
+/*.h5
+/*.csv
+/*.png
+/*.txt
+data/*.h5
+data/*.csv
+data/*.png
+data/*.txt
+
+# Jupyter
+.ipynb_checkpoints

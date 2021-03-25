@@ -54,6 +54,10 @@ def parse_args():
                         help='The gradient descent learning rate.'),
     parser.add_argument('-p', '--persist', default=False, type=bool,
                         help='Whether training weights should be persisted to database.')
+    parser.add_argument('-w', '--weights', default='weights.h5', type=str,
+                        help='The path to write training weights to.')
+    parser.add_argument('-r', '--results', default='results.png', type=str,
+                        help='The path to write the results graph to.')
 
     # If pulling data from API
     parser.add_argument('-sd', '--start_date', help=f'The start date of the data. Format: {DATE_FORMAT}')
@@ -83,10 +87,11 @@ def main(http=requests):
     dataset.filter_on('clinic_id', lambda c_id: c_id == args.clinic_id)
     dataset.filter_on('severity', lambda s: s == args.severity)
     trained_model, train_data, test_data, history = train_radius_variance(dataset,
-                                                                          epochs=args.epochs, lr=args.learning_rate)
+                                                                          epochs=args.epochs,
+                                                                          lr=args.learning_rate,
+                                                                          output_file=args.weights)
 
-    trained_model.get_model().save('weights.h5')
     if args.persist:
-        triage_api.post_weights(args.clinic_id, args.severity, 'weights.h5', history.history['val_loss'][-1])
+        triage_api.post_weights(args.clinic_id, args.severity, args.weights, history.history['val_loss'][-1])
 
-    visualize_training_results(trained_model, train_data, test_data, 'results.png')
+    visualize_training_results(trained_model, train_data, test_data, args.results)

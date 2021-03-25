@@ -12,6 +12,11 @@ class TriageAPI:
         self.password = password
         self.http = http
 
+    def auth(self):
+        res = self.http.post(f'{self.url}/auth/login', json={
+
+        })
+
     def get_data(self, clinic_id: int, severity: int, start_date: datetime, end_date: datetime):
         data = {
             'interval': (start_date.strftime(self.DATE_FORMAT), end_date.strftime(self.DATE_FORMAT))
