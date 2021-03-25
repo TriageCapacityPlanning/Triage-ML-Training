@@ -1,5 +1,5 @@
 from triage_ml.models.radius_variance import RadiusVariance
-from triage_ml.data.dataset import DataSet
+from triage_ml.data.dataset import DataSet, TimeInterval
 
 import pytest
 from datetime import datetime
@@ -29,7 +29,7 @@ def test_get_model():
 
 def test_train_model(test_dataset):
     """SRS: MOD-2"""
-    model = RadiusVariance(seq_size=2, radius_days=1)
+    model = RadiusVariance(seq_size=2, radius=1)
     ml_dataset = model.create_ml_dataset(test_dataset)
     weights = model.get_model().get_weights()
 
@@ -46,7 +46,7 @@ def test_train_model(test_dataset):
 
 def test_prediction(test_dataset):
     """SRS: MOD-7"""
-    model = RadiusVariance(seq_size=2, radius_days=1)
+    model = RadiusVariance(seq_size=2, radius=1)
     ml_dataset = model.create_ml_dataset(test_dataset)
     model.get_model().compile(
         optimizer=Adam(lr=0.001),
@@ -59,7 +59,7 @@ def test_prediction(test_dataset):
 
 
 def test_prediction_batch(test_dataset):
-    model = RadiusVariance(seq_size=2, radius_days=1)
+    model = RadiusVariance(seq_size=2, radius=1)
     ml_dataset = model.create_ml_dataset(test_dataset)
     model.get_model().compile(
         optimizer=Adam(lr=0.001),
@@ -72,14 +72,14 @@ def test_prediction_batch(test_dataset):
 
 
 def test_create_ml_dataset(test_dataset):
-    model = RadiusVariance(seq_size=2, radius_days=3)
+    model = RadiusVariance(seq_size=2, radius=3)
     ml_dataset = model.create_ml_dataset(test_dataset)
 
     assert np.array_equal(ml_dataset.inputs[0], np.array([[[1], [1]], [[1], [0]], [[0], [4]]]))
 
 
 def test_create_ml_dataset_empty():
-    model = RadiusVariance(seq_size=3, radius_days=2)
+    model = RadiusVariance(seq_size=3, radius=2)
     dataset = DataSet([])
     ml_dataset = model.create_ml_dataset(dataset)
 
@@ -89,7 +89,7 @@ def test_create_ml_dataset_empty():
 
 
 def test_create_ml_dataset_correct_length(test_dataset):
-    model = RadiusVariance(seq_size=1, radius_days=1)
+    model = RadiusVariance(seq_size=1, radius=1)
     dataset = DataSet(test_dataset)
     ml_dataset = model.create_ml_dataset(dataset)
 
@@ -97,8 +97,15 @@ def test_create_ml_dataset_correct_length(test_dataset):
 
 
 def test_create_ml_dataset_radius_affects_length(test_dataset):
-    model = RadiusVariance(seq_size=3, radius_days=3)
+    model = RadiusVariance(seq_size=3, radius=3)
     dataset = DataSet(test_dataset)
     ml_dataset = model.create_ml_dataset(dataset)
 
     assert ml_dataset.inputs[0].shape[0] == 2
+
+
+def test_create_ml_dataset_week_interval(test_dataset):
+    model = RadiusVariance(seq_size=1, radius=0, time_interval=TimeInterval.WEEK)
+    ml_dataset = model.create_ml_dataset(test_dataset)
+
+    assert ml_dataset.inputs[0] == np.array([[4.]])

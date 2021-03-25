@@ -28,7 +28,7 @@ def run(years=1, year_target=5, epochs=100, epochs_target=500):
     print('Data generation done')
     print(f'Took {time.time() - data_start}s\n')
 
-    model = RadiusVariance(seq_size=30, radius_days=15)
+    model = RadiusVariance(seq_size=30, radius=15)
     ml_dataset = model.create_ml_dataset(dataset)
 
     print(f'Training for {epochs} epochs...')

@@ -50,6 +50,7 @@ def visualize_training_results(model: PredictionModel, train_data: MLDataSet, te
     for i in range(test_size):
         gt.append(test_data.outputs[0][i][0])
         pred.append(preds[i][0][0])
+        print(test_data.outputs[0][i], preds[i][0])
 
     plt.plot(train, label='Train data')
     plt.plot(gt, label='Test data')

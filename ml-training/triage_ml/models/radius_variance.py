@@ -1,5 +1,5 @@
 from triage_ml.models.prediction_model import PredictionModel
-from triage_ml.data.dataset import DataSet, MLDataSet
+from triage_ml.data.dataset import DataSet, MLDataSet, TimeInterval
 
 from typing import List
 from tensorflow.keras import Model
@@ -20,29 +20,37 @@ class RadiusVariance(PredictionModel):
      radius of the prediction day.
     """
 
-    def __init__(self, seq_size=30, radius_days=15):
+    def __init__(self, seq_size=30, radius=15, time_interval=TimeInterval.DAY):
         """
         Construct a new RadiusVariance.
         :param seq_size: How many previous days does the model require to predict.
-        :param radius_days: The radius in days used to compute arrival variance.
+        :param radius: The radius in time_interval units used to compute arrival variance.
+        :param time_interval: The size of each unit time interval.
         """
         self.seq_size = seq_size
-        self.radius_days = radius_days
+        self.radius = radius
+        self.time_interval = time_interval
         self.model = None
 
     def _init_model(self):
         seq_input = Input(shape=(self.seq_size, 1), name='seq_input')
         date_input = Input(shape=(12 + 31), name='date_input')  # One-hot encoding of month and day of month
 
-        x = LSTM(units=64)(seq_input)
+        x = LSTM(units=8, activation='tanh')(seq_input)
         x = Dropout(0.2)(x)
 
         x = Concatenate(axis=1)([x, date_input])
 
-        x = Dense(units=64)(x)
-        x = Dense(units=32)(x)
+        x = Dense(units=64, activation='tanh')(x)
+        x = Dropout(0.2)(x)
+        """
+        x = Dense(units=512, activation='tanh')(x)
+        x = Dropout(0.2)(x)
+        x = Dense(units=256, activation='tanh')(x)
+        x = Dropout(0.2)(x)
+        """
 
-        output = Dense(units=2)(x)
+        output = Dense(units=2, activation='relu')(x)
 
         self.model = Model(name='radius_variance', inputs=[seq_input, date_input], outputs=output)
 
@@ -56,10 +64,13 @@ class RadiusVariance(PredictionModel):
             dataset.order_by('date_received')
             first = dataset[0]
             last = dataset[-1]
-            min_date = first.date_received + timedelta(days=self.radius_days)
-            max_date = last.date_received - timedelta(days=self.radius_days)
+            min_date = first.date_received + self._timedelta(self.radius)
+            max_date = last.date_received - self._timedelta(self.radius)
 
-            date_aggregation = dataset.aggregate_on('date_received', lambda dr: str(dr.date()))
+            if self.time_interval == TimeInterval.WEEK:
+                date_aggregation = dataset.aggregate_on('date_received', lambda dr: self._datestr(dr))
+            else:
+                date_aggregation = dataset.aggregate_on('date_received', lambda dr: self._datestr(dr))
 
             date_range = list(self._date_range(min_date, max_date))
         else:
@@ -69,12 +80,12 @@ class RadiusVariance(PredictionModel):
         y = [np.zeros((len(date_range), 2))]
 
         for i, date in enumerate(date_range):
-            date_str = str(date.date())
+            date_str = self._datestr(date)
             val = len(date_aggregation[date_str]) if date_str in date_aggregation else 0
 
             radius_vals = []
-            for j in range(-self.radius_days, self.radius_days + 1):
-                j_date_str = str((date + timedelta(days=j)).date())
+            for j in range(-self.radius, self.radius + 1):
+                j_date_str = self._datestr(date + self._timedelta(j))
                 radius_vals.append(len(date_aggregation[j_date_str]) if j_date_str in date_aggregation else 0)
             variance = np.var(radius_vals)
 
@@ -107,8 +118,27 @@ class RadiusVariance(PredictionModel):
         return predictions
 
     def _date_range(self, min_date: datetime, max_date: datetime):
-        for n in range(int((max_date - min_date).days) + 1):
-            yield min_date + timedelta(n)
+        if self.time_interval == TimeInterval.WEEK:
+            size = int((max_date - min_date).days / 7) + 1
+            delta = timedelta(weeks=1)
+        else:
+            size = int((max_date - min_date).days) + 1
+            delta = timedelta(days=1)
+
+        for n in range(size):
+            yield min_date + n*delta
+
+    def _timedelta(self, amount):
+        if self.time_interval == TimeInterval.WEEK:
+            return timedelta(weeks=amount)
+        else:
+            return timedelta(days=amount)
+
+    def _datestr(self, date):
+        if self.time_interval == TimeInterval.WEEK:
+            return datetime.strftime(date, '%Y-%U')
+        else:
+            return str(date.date())
 
     def get_model(self):
         """

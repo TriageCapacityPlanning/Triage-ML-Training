@@ -1,10 +1,16 @@
 from collections import namedtuple
 from typing import Any, Dict, List, Tuple, Text, Callable
+from enum import Enum, auto
 import numpy as np
 
 _ATTRS = ['clinic_id', 'severity', 'date_received']
 
 DataPoint = namedtuple('DataPoint', _ATTRS)
+
+
+class TimeInterval(Enum):
+    DAY = auto()
+    WEEK = auto()
 
 
 class DataSet:
@@ -61,7 +67,7 @@ class DataSet:
         :return: A Dictionary of attributes to their aggregated DataPoints.
         """
         attr_idx = _ATTRS.index(attribute)
-        sorted_data = sorted(self.data, key=lambda data_point: data_point[attr_idx])
+        sorted_data = sorted(self.data, key=lambda data_point: key(data_point[attr_idx]))
 
         aggregation = {}
         agg = None
