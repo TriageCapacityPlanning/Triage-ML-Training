@@ -3,6 +3,7 @@ from triage_ml.data.dataset import DataSet
 from triage_ml.triage_api import TriageAPI
 from triage_ml.data.visualizations import visualize_training_results
 
+import sys
 from typing import Text
 from datetime import datetime
 import os
@@ -35,7 +36,7 @@ def _load_dataset_from_file(file_name: Text) -> DataSet:
     return DataSet(data)
 
 
-def parse_args():
+def parse_args(args):
     """
     Parser configuration
     :return: parsed augments object
@@ -67,14 +68,14 @@ def parse_args():
     parser.add_argument('-d', '--dataset',
                         help='An optional local dataset to train on instead')
 
-    return parser.parse_args()
+    return parser.parse_args(args)
 
 
-def main(http=requests):
+def main(http=requests, str_args=None):
     """
     Entrypoint for triage-train.
     """
-    args = parse_args()
+    args = parse_args(str_args or sys.argv[1:])
     triage_api = TriageAPI(TRIAGE_API_URL, TRIAGE_API_USER, TRIAGE_API_PASS, http)
 
     if args.dataset:
