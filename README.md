@@ -61,3 +61,6 @@ Benchmarks your machines ability to perform training.
 docker run -it --gpus '"device={num}"' triage-ml-training
 python tests/stress_test.py
 ```
+
+### Validation tests
+The validation procedure is outlined in [TriageValidation.ipynb](TriageValidation.ipynb) with sample data.
