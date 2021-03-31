@@ -24,7 +24,7 @@ docker run -it --gpus '"device={num}"' triage-ml-training
 ### Local installation (not recommended)
 ```bash
 git clone https://github.com/TriageCapacityPlanning/Triage-ML-Training && cd Triage-ML-Training
-pip3 install ml-training
+pip3 install ./ml-training
 ```
 
 ## Usage
